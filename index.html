@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulatore di Strabismo Paralitico</title>
+<style>
+:root{--bg:#0f172a;--card:#111827;--card2:#0b1220;--text:#e5e7eb;--muted:#94a3b8;--line:#334155;--acc:#38bdf8;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(#0b1220,#0f172a);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{position:sticky;top:0;z-index:10;background:rgba(15,23,42,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:18px}
+.wrap{max-width:1180px;margin:auto} h1{font-size:1.7rem;margin:0 0 4px}.sub{color:var(--muted);font-size:.92rem}
+main{padding:18px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+button,select{background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.95rem}
+button{cursor:pointer;font-weight:700}button.primary{background:var(--acc);color:#05222c;border-color:transparent}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.18)}
+h2{font-size:1.05rem;margin:0 0 12px}.patient{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}@media(max-width:650px){.patient{grid-template-columns:repeat(2,1fr)}}
+.stat,.detail{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px}.k{font-size:.75rem;color:var(--muted);margin-bottom:3px}.v{font-weight:750}
+.details{display:grid;gap:8px}.detail b{display:block;font-size:.8rem;color:#cbd5e1;margin-bottom:3px}
+.motility{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:560px;margin:10px auto}
+.gaze{position:relative;background:var(--card2);border:1px solid var(--line);border-radius:12px;aspect-ratio:1.35;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.eyes{display:flex;gap:16px}.eye{width:70px;height:42px;border-radius:50%/60%;background:#f8fafc;position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px #cbd5e1}
+.iris{width:18px;height:18px;border-radius:50%;background:#64748b;position:absolute;left:26px;top:12px}.pupil{width:8px;height:8px;border-radius:50%;background:#0f172a;position:absolute;left:5px;top:5px}
+.flag{position:absolute;right:7px;top:6px;color:var(--bad);font-weight:900}.glab{position:absolute;left:6px;bottom:5px;color:var(--muted);font-size:.67rem}
+.legend{font-size:.78rem;color:var(--muted);text-align:center;margin-top:7px}
+.quiz{display:grid;gap:10px}.field label{display:block;color:var(--muted);font-size:.8rem;margin-bottom:5px}.field select{width:100%}
+.result{display:none;margin-top:10px;padding:11px;border-radius:11px}.result.ok{display:block;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45)}.result.no{display:block;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.45)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.pill{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:6px 9px;background:var(--card2)}
+.tip{margin-top:12px;border-left:3px solid var(--warn);background:rgba(245,158,11,.08);padding:10px;border-radius:8px;color:#fde68a;font-size:.83rem;line-height:1.45}
+.small{font-size:.78rem;color:var(--muted);line-height:1.45}.hidden{filter:blur(6px);user-select:none}
+table{width:100%;border-collapse:collapse;font-size:.8rem}th,td{padding:7px;border-bottom:1px solid var(--line);text-align:left}th{color:#cbd5e1}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Simulatore di Strabismo Paralitico</h1><div class="sub">Allenamento ortottico · III, IV e VI nervo cranico · casi casuali</div></div></header>
+<main class="wrap">
+<div class="toolbar">
+<button id="newCase" class="primary">Nuovo caso</button>
+<button id="toggleClues">Nascondi / mostra indizi</button>
+<select id="difficulty"><option value="base">Base</option><option value="intermediate" selected>Intermedio</option><option value="advanced">Avanzato</option></select>
+</div>
+
+<div class="grid">
+<section class="card">
+<h2>Caso clinico</h2>
+<div class="patient">
+<div class="stat"><div class="k">Età</div><div class="v" id="age"></div></div>
+<div class="stat"><div class="k">Esordio</div><div class="v" id="onset"></div></div>
+<div class="stat"><div class="k">Sintomo</div><div class="v" id="symptom"></div></div>
+<div class="stat"><div class="k">Occhio sospetto</div><div class="v">Da determinare</div></div>
+</div>
+<div class="details" id="clues">
+<div class="detail"><b>Diplopia</b><span id="diplopia"></span></div>
+<div class="detail"><b>Posizione compensatoria del capo</b><span id="head"></span></div>
+<div class="detail"><b>Bielschowsky / head tilt</b><span id="biel"></span></div>
+<div class="detail"><b>Cover test / deviazione</b><span id="deviation"></span></div>
+</div>
+
+<h2 style="margin-top:17px">Motilità nelle 9 posizioni di sguardo</h2>
+<div class="motility" id="motility"></div>
+<div class="legend">Il simbolo rosso segnala la posizione in cui l'ipoazione è più evidente.</div>
+</section>
+
+<section class="card">
+<h2>Formula la diagnosi</h2>
+<div class="quiz">
+<div class="field"><label>Occhio coinvolto</label><select id="eyeAns"><option value="">Seleziona</option><option>OD</option><option>OS</option><option>Bilaterale</option></select></div>
+<div class="field"><label>Muscolo principalmente coinvolto</label><select id="muscleAns"><option value="">Seleziona</option><option>Retto laterale</option><option>Retto mediale</option><option>Retto superiore</option><option>Retto inferiore</option><option>Grande obliquo</option><option>Piccolo obliquo</option><option>Più muscoli</option></select></div>
+<div class="field"><label>Nervo cranico</label><select id="nerveAns"><option value="">Seleziona</option><option>III</option><option>IV</option><option>VI</option></select></div>
+<button id="check" class="primary">Controlla risposta</button>
+</div>
+<div id="result" class="result"></div>
+<div class="pills"><span class="pill">Corrette: <b id="correct">0</b></span><span class="pill">Tentativi: <b id="attempts">0</b></span><span class="pill">Accuratezza: <b id="accuracy">0%</b></span></div>
+<div class="tip"><b>Metodo:</b> individua la direzione di massima diplopia/ipoazione → identifica il muscolo deficitario → verifica coerenza con deviazione e posizione compensatoria del capo.</div>
+</section>
+</div>
+
+<section class="card" style="margin-top:16px">
+<h2>Schema rapido muscoli / nervi</h2>
+<table>
+<tr><th>Muscolo</th><th>Azione principale</th><th>Nervo</th></tr>
+<tr><td>Retto laterale</td><td>Abduzione</td><td>VI</td></tr>
+<tr><td>Retto mediale</td><td>Adduzione</td><td>III</td></tr>
+<tr><td>Retto superiore</td><td>Elevazione in abduzione</td><td>III</td></tr>
+<tr><td>Retto inferiore</td><td>Depressione in abduzione</td><td>III</td></tr>
+<tr><td>Grande obliquo</td><td>Depressione in adduzione, intorsione</td><td>IV</td></tr>
+<tr><td>Piccolo obliquo</td><td>Elevazione in adduzione, extorsione</td><td>III</td></tr>
+</table>
+<div class="small" style="margin-top:10px">Strumento didattico: i quadri sono volutamente semplificati e non sostituiscono la valutazione clinica reale.</div>
+</section>
+</main>
+
+<script>
+const cases = [
+{eye:"OD",muscle:"Retto laterale",nerve:"VI",diplopia:"Orizzontale, massima nello sguardo verso destra e a distanza.",head:"Volto ruotato verso destra.",biel:"Negativo / non significativo.",deviation:"Esotropia OD maggiore nello sguardo a destra.",lim:"R",pos:["R"],sym:"Diplopia orizzontale",on:"Acuto"},
+{eye:"OS",muscle:"Retto laterale",nerve:"VI",diplopia:"Orizzontale, massima nello sguardo verso sinistra e a distanza.",head:"Volto ruotato verso sinistra.",biel:"Negativo / non significativo.",deviation:"Esotropia OS maggiore nello sguardo a sinistra.",lim:"L",pos:["L"],sym:"Diplopia orizzontale",on:"Acuto"},
+{eye:"OD",muscle:"Grande obliquo",nerve:"IV",diplopia:"Verticale-obliqua, peggiore in basso e a sinistra, soprattutto da vicino.",head:"Inclinazione del capo verso sinistra con mento lievemente abbassato.",biel:"Positivo su spalla destra.",deviation:"Ipertropia OD, maggiore in adduzione OD e con tilt destro.",lim:"DL",pos:["DL"],sym:"Diplopia verticale",on:"Subacuto"},
+{eye:"OS",muscle:"Grande obliquo",nerve:"IV",diplopia:"Verticale-obliqua, peggiore in basso e a destra, soprattutto da vicino.",head:"Inclinazione del capo verso destra con mento lievemente abbassato.",biel:"Positivo su spalla sinistra.",deviation:"Ipertropia OS, maggiore in adduzione OS e con tilt sinistro.",lim:"DR",pos:["DR"],sym:"Diplopia verticale",on:"Subacuto"},
+{eye:"OD",muscle:"Retto superiore",nerve:"III",diplopia:"Verticale, peggiore nello sguardo in alto a destra.",head:"Mento sollevato; possibile lieve rotazione del volto.",biel:"Non tipicamente diagnostico.",deviation:"Ipotropia OD, maggiore in abduzione e sguardo in alto.",lim:"UR",pos:["UR"],sym:"Diplopia verticale",on:"Variabile"},
+{eye:"OS",muscle:"Retto superiore",nerve:"III",diplopia:"Verticale, peggiore nello sguardo in alto a sinistra.",head:"Mento sollevato; possibile lieve rotazione del volto.",biel:"Non tipicamente diagnostico.",deviation:"Ipotropia OS, maggiore in abduzione e sguardo in alto.",lim:"UL",pos:["UL"],sym:"Diplopia verticale",on:"Variabile"},
+{eye:"OD",muscle:"Retto inferiore",nerve:"III",diplopia:"Verticale, peggiore nello sguardo in basso a destra.",head:"Mento abbassato.",biel:"Non tipicamente diagnostico.",deviation:"Ipertropia OD, maggiore in abduzione e sguardo in basso.",lim:"DR",pos:["DR"],sym:"Diplopia verticale",on:"Variabile"},
+{eye:"OS",muscle:"Retto inferiore",nerve:"III",diplopia:"Verticale, peggiore nello sguardo in basso a sinistra.",head:"Mento abbassato.",biel:"Non tipicamente diagnostico.",deviation:"Ipertropia OS, maggiore in abduzione e sguardo in basso.",lim:"DL",pos:["DL"],sym:"Diplopia verticale",on:"Variabile"},
+{eye:"OD",muscle:"Più muscoli",nerve:"III",diplopia:"Mista orizzontale e verticale, variabile nelle diverse posizioni di sguardo.",head:"Posizione compensatoria variabile.",biel:"Non specifico.",deviation:"OD tendenzialmente exo-ipotropico con limitazione di adduzione, elevazione e depressione.",lim:"MULTI-R",pos:["U","D","L"],sym:"Diplopia mista",on:"Acuto"},
+{eye:"OS",muscle:"Più muscoli",nerve:"III",diplopia:"Mista orizzontale e verticale, variabile nelle diverse posizioni di sguardo.",head:"Posizione compensatoria variabile.",biel:"Non specifico.",deviation:"OS tendenzialmente exo-ipotropico con limitazione di adduzione, elevazione e depressione.",lim:"MULTI-L",pos:["U","D","R"],sym:"Diplopia mista",on:"Acuto"},
+{eye:"Bilaterale",muscle:"Grande obliquo",nerve:"IV",diplopia:"Verticale-obliqua, spesso peggiore in basso; può esserci torsione soggettiva.",head:"Compenso variabile; talvolta mento abbassato.",biel:"Può risultare positivo su entrambe le spalle.",deviation:"Pattern a V possibile, exciclotorsione e segni di IV bilaterale.",lim:"BIL-IV",pos:["DL","DR"],sym:"Diplopia verticale",on:"Traumatico / variabile"}
+];
+
+const gazeDefs=[
+["UL",-13,-10],["U",0,-11],["UR",13,-10],
+["L",-14,0],["C",0,0],["R",14,0],
+["DL",-13,10],["D",0,11],["DR",13,10]
+];
+let current=null,correct=0,attempts=0;
+
+function allowedCases(){
+ const d=document.getElementById("difficulty").value;
+ if(d==="base") return cases.filter(c=>["VI","IV"].includes(c.nerve)&&c.eye!=="Bilaterale");
+ if(d==="intermediate") return cases.filter(c=>c.eye!=="Bilaterale");
+ return cases;
+}
+function pupilOffset(code, eye, c){
+ let g=gazeDefs.find(x=>x[0]===code), x=g[1],y=g[2];
+ let limited=false;
+ if(c.nerve==="VI" && c.eye===eye && ((eye==="OD"&&code.includes("R"))||(eye==="OS"&&code.includes("L")))){x*=.25;limited=true}
+ if(c.muscle==="Grande obliquo" && c.eye===eye){
+   if((eye==="OD"&&code==="DL")||(eye==="OS"&&code==="DR")){y*=.25;limited=true}
+ }
+ if(c.muscle==="Retto superiore" && c.eye===eye){
+   if((eye==="OD"&&code==="UR")||(eye==="OS"&&code==="UL")){y*=.25;limited=true}
+ }
+ if(c.muscle==="Retto inferiore" && c.eye===eye){
+   if((eye==="OD"&&code==="DR")||(eye==="OS"&&code==="DL")){y*=.25;limited=true}
+ }
+ if(c.muscle==="Più muscoli" && c.eye===eye && code!=="C"){x*=.45;y*=.45;limited=true}
+ if(c.eye==="Bilaterale"&&c.muscle==="Grande obliquo"&&(code==="DL"||code==="DR")){y*=.45;limited=true}
+ return {x,y,limited};
+}
+function renderMotility(c){
+ const box=document.getElementById("motility");box.innerHTML="";
+ gazeDefs.forEach(([code])=>{
+   const cell=document.createElement("div");cell.className="gaze";
+   const eyes=document.createElement("div");eyes.className="eyes";
+   ["OD","OS"].forEach(e=>{
+     const ed=document.createElement("div");ed.className="eye";
+     const ir=document.createElement("div");ir.className="iris";
+     const pu=document.createElement("div");pu.className="pupil";ir.appendChild(pu);
+     const o=pupilOffset(code,e,c);ir.style.transform=`translate(${o.x}px,${o.y}px)`;
+     ed.appendChild(ir); eyes.appendChild(ed);
+   });
+   cell.appendChild(eyes);
+   let isFlag=c.pos.includes(code);
+   if(isFlag){const f=document.createElement("div");f.className="flag";f.textContent="↓";cell.appendChild(f)}
+   const l=document.createElement("div");l.className="glab";l.textContent=code;cell.appendChild(l);
+   box.appendChild(cell);
+ });
+}
+function randomAge(){return [28,34,41,52,63,70,76][Math.floor(Math.random()*7)]+" anni"}
+function newCase(){
+ let arr=allowedCases(); current=arr[Math.floor(Math.random()*arr.length)];
+ document.getElementById("age").textContent=randomAge();
+ document.getElementById("onset").textContent=current.on;
+ document.getElementById("symptom").textContent=current.sym;
+ document.getElementById("diplopia").textContent=current.diplopia;
+ document.getElementById("head").textContent=current.head;
+ document.getElementById("biel").textContent=current.biel;
+ document.getElementById("deviation").textContent=current.deviation;
+ renderMotility(current);
+ ["eyeAns","muscleAns","nerveAns"].forEach(id=>document.getElementById(id).value="");
+ const r=document.getElementById("result");r.className="result";r.innerHTML="";
+}
+function check(){
+ if(!current)return;
+ const e=document.getElementById("eyeAns").value,m=document.getElementById("muscleAns").value,n=document.getElementById("nerveAns").value;
+ const r=document.getElementById("result");
+ if(!e||!m||!n){r.className="result no";r.textContent="Completa tutti e tre i campi.";return}
+ attempts++;
+ const ok=e===current.eye&&m===current.muscle&&n===current.nerve;
+ if(ok){correct++;r.className="result ok";r.innerHTML="<b>Corretto.</b> "+explain(current)}
+ else{r.className="result no";r.innerHTML="<b>Non corretto.</b><br>Diagnosi: <b>"+current.eye+" · "+current.muscle+" · NC "+current.nerve+"</b><br>"+explain(current)}
+ updateScore();
+}
+function explain(c){
+ if(c.nerve==="VI") return "Il deficit di abduzione aumenta l'esotropia nello sguardo verso il lato del retto laterale paretico.";
+ if(c.nerve==="IV") return "Il grande obliquo deprime soprattutto l'occhio addotto: la deviazione aumenta nella posizione diagnostica e al tilt omolaterale.";
+ if(c.nerve==="III"&&c.muscle==="Più muscoli") return "Una paralisi del III coinvolge più muscoli extraoculari, con quadro combinato e tipica tendenza exo-ipotropica.";
+ return "La posizione di massima limitazione corrisponde al campo d'azione diagnostico del muscolo selezionato.";
+}
+function updateScore(){
+ document.getElementById("correct").textContent=correct;
+ document.getElementById("attempts").textContent=attempts;
+ document.getElementById("accuracy").textContent=attempts?Math.round(correct/attempts*100)+"%":"0%";
+}
+document.getElementById("newCase").onclick=newCase;
+document.getElementById("check").onclick=check;
+document.getElementById("toggleClues").onclick=()=>document.getElementById("clues").classList.toggle("hidden");
+document.getElementById("difficulty").onchange=newCase;
+newCase();
+</script>
+</body>
+</html>
