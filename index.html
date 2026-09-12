@@ -33,8 +33,10 @@ button{font-weight:700}button.primary{background:var(--a);color:#06202a;border:0
 </div></div>
 
 <div class="card"><b>Motilità nelle 9 posizioni di sguardo</b>
-<p class="note">Orientamento dal punto di vista dell'esaminatore: <b>OD è a sinistra dello schermo</b>, OS a destra. Non sono presenti frecce-suggerimento.</p>
-<div id="grid" class="gazegrid"></div></div>
+<p class="note">Convenzione ortottica: paziente visto frontalmente; <b>OD è a sinistra dello schermo</b>, OS a destra.
+Le caselle indicano la posizione sullo schermo: ← = lato OD del paziente, → = lato OS. Non sono presenti frecce-suggerimento.</p>
+<div id="grid" class="gazegrid"></div>
+<p class="note"><b>Campi d’azione usati:</b> RL = abduzione; RM = adduzione; RS = elevazione in abduzione; RI = depressione in abduzione; PO = elevazione in adduzione; GO = depressione in adduzione.</p></div>
 
 <div class="card"><b>Diagnosi</b><div class="quiz" style="margin-top:10px">
 <select id="o"><option value="">Occhio coinvolto</option><option>OD</option><option>OS</option><option>Bilaterale</option></select>
@@ -52,31 +54,33 @@ const positions=[
 // Coordinate visive: x<0 = sinistra dello schermo/paziente guarda a destra? 
 // Convenzione etichette: L/R indicano la direzione di sguardo DEL PAZIENTE.
 // Dal punto di vista dell'esaminatore, sguardo a destra del paziente sposta entrambe le pupille a sinistra dello schermo.
-function screenVector(pos){ return {x:-pos.x*12,y:pos.y*8}; }
+function screenVector(pos){ return {x:pos.x*12,y:pos.y*8}; }
 // Campo diagnostico del muscolo per ciascun occhio, usando direzione del PAZIENTE.
 function diagnostic(eye,muscle,pos){
  if(pos.id==="C")return false;
- if(muscle==="Retto laterale") return (eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1);
- if(muscle==="Retto mediale") return (eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1);
- if(muscle==="Retto superiore") return pos.y==-1&&((eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1));
- if(muscle==="Retto inferiore") return pos.y==1&&((eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1));
- if(muscle==="Grande obliquo") return pos.y==1&&((eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1));
- if(muscle==="Piccolo obliquo") return pos.y==-1&&((eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1));
+ // x<0 = sinistra dello schermo = lato OD del paziente.
+ // OD: x<0 abduzione, x>0 adduzione. OS: x>0 abduzione, x<0 adduzione.
+ if(muscle==="Retto laterale") return (eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1);
+ if(muscle==="Retto mediale") return (eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1);
+ if(muscle==="Retto superiore") return pos.y==-1&&((eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1));
+ if(muscle==="Retto inferiore") return pos.y==1&&((eye==="OD"&&pos.x==-1)||(eye==="OS"&&pos.x==1));
+ if(muscle==="Grande obliquo") return pos.y==1&&((eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1));
+ if(muscle==="Piccolo obliquo") return pos.y==-1&&((eye==="OD"&&pos.x==1)||(eye==="OS"&&pos.x==-1));
  return false;
 }
 const casi=[
- {o:"OD",m:"Retto laterale",n:"VI",dip:"Orizzontale, maggiore nello sguardo a destra e a distanza.",dev:"Esotropia OD, maggiore nello sguardo a destra.",bie:"Non significativo.",cap:"Volto ruotato verso destra."},
- {o:"OS",m:"Retto laterale",n:"VI",dip:"Orizzontale, maggiore nello sguardo a sinistra e a distanza.",dev:"Esotropia OS, maggiore nello sguardo a sinistra.",bie:"Non significativo.",cap:"Volto ruotato verso sinistra."},
- {o:"OD",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, maggiore in basso a sinistra.",dev:"Ipertropia OD maggiore in adduzione e depressione.",bie:"Positivo al tilt destro.",cap:"Tilt sinistro, spesso con mento abbassato."},
- {o:"OS",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, maggiore in basso a destra.",dev:"Ipertropia OS maggiore in adduzione e depressione.",bie:"Positivo al tilt sinistro.",cap:"Tilt destro, spesso con mento abbassato."},
- {o:"OD",m:"Retto superiore",n:"III",dip:"Verticale, maggiore in alto a destra.",dev:"Ipotropia OD maggiore in elevazione e abduzione.",bie:"Non specifico.",cap:"Possibile mento sollevato."},
- {o:"OS",m:"Retto superiore",n:"III",dip:"Verticale, maggiore in alto a sinistra.",dev:"Ipotropia OS maggiore in elevazione e abduzione.",bie:"Non specifico.",cap:"Possibile mento sollevato."},
- {o:"OD",m:"Retto inferiore",n:"III",dip:"Verticale, maggiore in basso a destra.",dev:"Ipertropia OD maggiore in depressione e abduzione.",bie:"Non specifico.",cap:"Possibile mento abbassato."},
- {o:"OS",m:"Retto inferiore",n:"III",dip:"Verticale, maggiore in basso a sinistra.",dev:"Ipertropia OS maggiore in depressione e abduzione.",bie:"Non specifico.",cap:"Possibile mento abbassato."},
- {o:"OD",m:"Piccolo obliquo",n:"III",dip:"Verticale, maggiore in alto a sinistra.",dev:"Ipotropia OD maggiore in elevazione e adduzione.",bie:"Non specifico.",cap:"Variabile."},
- {o:"OS",m:"Piccolo obliquo",n:"III",dip:"Verticale, maggiore in alto a destra.",dev:"Ipotropia OS maggiore in elevazione e adduzione.",bie:"Non specifico.",cap:"Variabile."},
- {o:"OD",m:"Retto mediale",n:"III",dip:"Orizzontale, maggiore nello sguardo a sinistra.",dev:"Exotropia OD maggiore nello sguardo a sinistra.",bie:"Non significativo.",cap:"Variabile."},
- {o:"OS",m:"Retto mediale",n:"III",dip:"Orizzontale, maggiore nello sguardo a destra.",dev:"Exotropia OS maggiore nello sguardo a destra.",bie:"Non significativo.",cap:"Variabile."},
+ {o:"OD",m:"Retto laterale",n:"VI",dip:"Orizzontale, maggiore nello sguardo verso il lato OD e a distanza.",dev:"Esotropia OD, maggiore nel tentativo di abduzione OD.",bie:"Non significativo.",cap:"Volto ruotato verso destra."},
+ {o:"OS",m:"Retto laterale",n:"VI",dip:"Orizzontale, maggiore nello sguardo verso il lato OS e a distanza.",dev:"Esotropia OS, maggiore nel tentativo di abduzione OS.",bie:"Non significativo.",cap:"Volto ruotato verso sinistra."},
+ {o:"OD",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, maggiore con OD addotto e in depressione.",dev:"Ipertropia OD maggiore in adduzione e depressione.",bie:"Positivo al tilt destro.",cap:"Tilt sinistro, spesso con mento abbassato."},
+ {o:"OS",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, maggiore con OS addotto e in depressione.",dev:"Ipertropia OS maggiore in adduzione e depressione.",bie:"Positivo al tilt sinistro.",cap:"Tilt destro, spesso con mento abbassato."},
+ {o:"OD",m:"Retto superiore",n:"III",dip:"Verticale, maggiore con OD abdotto e in elevazione.",dev:"Ipotropia OD maggiore in elevazione e abduzione.",bie:"Non specifico.",cap:"Possibile mento sollevato."},
+ {o:"OS",m:"Retto superiore",n:"III",dip:"Verticale, maggiore con OS abdotto e in elevazione.",dev:"Ipotropia OS maggiore in elevazione e abduzione.",bie:"Non specifico.",cap:"Possibile mento sollevato."},
+ {o:"OD",m:"Retto inferiore",n:"III",dip:"Verticale, maggiore con OD abdotto e in depressione.",dev:"Ipertropia OD maggiore in depressione e abduzione.",bie:"Non specifico.",cap:"Possibile mento abbassato."},
+ {o:"OS",m:"Retto inferiore",n:"III",dip:"Verticale, maggiore con OS abdotto e in depressione.",dev:"Ipertropia OS maggiore in depressione e abduzione.",bie:"Non specifico.",cap:"Possibile mento abbassato."},
+ {o:"OD",m:"Piccolo obliquo",n:"III",dip:"Verticale, maggiore con OD addotto e in elevazione.",dev:"Ipotropia OD maggiore in elevazione e adduzione.",bie:"Non specifico.",cap:"Variabile."},
+ {o:"OS",m:"Piccolo obliquo",n:"III",dip:"Verticale, maggiore con OS addotto e in elevazione.",dev:"Ipotropia OS maggiore in elevazione e adduzione.",bie:"Non specifico.",cap:"Variabile."},
+ {o:"OD",m:"Retto mediale",n:"III",dip:"Orizzontale, maggiore nel tentativo di adduzione OD.",dev:"Exotropia OD maggiore nel tentativo di adduzione OD.",bie:"Non significativo.",cap:"Variabile."},
+ {o:"OS",m:"Retto mediale",n:"III",dip:"Orizzontale, maggiore nel tentativo di adduzione OS.",dev:"Exotropia OS maggiore nel tentativo di adduzione OS.",bie:"Non significativo.",cap:"Variabile."},
  {o:"Bilaterale",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, spesso maggiore in basso; possibile torsione.",dev:"Possibile pattern a V ed exciclotorsione.",bie:"Può essere positivo su entrambe le spalle.",cap:"Variabile."}
 ];
 let c;
@@ -113,7 +117,9 @@ function render(){
      let q=eyeOffset(e,pos);ir.style.transform=`translate(${q.x}px,${q.y}px)`;
      ey.appendChild(ir);w.appendChild(nm);w.appendChild(ey);eyes.appendChild(w);
    });
-   let lab=document.createElement("div");lab.className="glabel";lab.textContent=pos.id;
+   let lab=document.createElement("div");lab.className="glabel";
+const labs={UL:"↖",U:"↑",UR:"↗",L:"←",C:"•",R:"→",DL:"↙",D:"↓",DR:"↘"};
+lab.textContent=labs[pos.id];
    cell.appendChild(eyes);cell.appendChild(lab);g.appendChild(cell);
  });
 }
