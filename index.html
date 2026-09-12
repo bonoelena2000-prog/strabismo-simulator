@@ -23,7 +23,7 @@ button{font-weight:700}button.primary{background:var(--a);color:#06202a;border:0
 <div class="card"><div class="toolbar">
 <button class="primary" onclick="nuovo()">Nuovo caso</button>
 <button onclick="toggleIndizi()">Nascondi/mostra indizi</button>
-<select id="livello" onchange="nuovo()"><option value="base">Base</option><option value="medio" selected>Intermedio</option><option value="difficile">Difficile</option></select>
+<select id="livello" onchange="nuovo()"><option value="base">Base</option><option value="medio" selected>Intermedio</option><option value="difficile">Difficile</option><option value="ortottista">Ortottista</option><option value="pediatrico">Pediatrico</option></select>
 </div>
 <div id="indizi" class="clues">
 <div class="clue"><b>Diplopia</b><span id="dip"></span></div>
@@ -83,6 +83,31 @@ const casi=[
  {o:"OS",m:"Retto mediale",n:"III",dip:"Orizzontale, maggiore nel tentativo di adduzione OS.",dev:"Exotropia OS maggiore nel tentativo di adduzione OS.",bie:"Non significativo.",cap:"Variabile."},
  {o:"Bilaterale",m:"Grande obliquo",n:"IV",dip:"Verticale-obliqua, spesso maggiore in basso; possibile torsione.",dev:"Possibile pattern a V ed exciclotorsione.",bie:"Può essere positivo su entrambe le spalle.",cap:"Variabile."}
 ];
+const casiPediatrici=[
+ {eye:"OD",muscle:"Retto laterale",n:"VI",dip:"Il genitore riferisce che l’occhio destro tende verso l’interno; il bambino non riferisce diplopia.",dev:"ET OD incomitante, maggiore nel tentativo di abduzione OD.",pac:"Rotazione del capo verso il lato OD.",biel:"Non significativo.",tag:"VI pediatrico",age:"5 anni"},
+ {eye:"OS",muscle:"Retto laterale",n:"VI",dip:"Il genitore nota deviazione verso l’interno dell’occhio sinistro, comparsa recentemente.",dev:"ET OS incomitante, maggiore nel tentativo di abduzione OS.",pac:"Rotazione del capo verso il lato OS.",biel:"Non significativo.",tag:"VI pediatrico",age:"7 anni"},
+ {eye:"OD",muscle:"Grande obliquo",n:"IV",dip:"Non riferisce diplopia; i genitori notano inclinazione abituale del capo.",dev:"Ipertropia OD che aumenta con OD addotto e depresso.",pac:"Tilt abituale verso la spalla OS.",biel:"Ipertropia OD aumenta al tilt OD.",tag:"IV pediatrico",age:"6 anni"},
+ {eye:"OS",muscle:"Grande obliquo",n:"IV",dip:"Nessuna diplopia riferita; fotografie mostrano inclinazione costante del capo.",dev:"Ipertropia OS che aumenta con OS addotto e depresso.",pac:"Tilt abituale verso la spalla OD.",biel:"Ipertropia OS aumenta al tilt OS.",tag:"IV pediatrico",age:"8 anni"},
+ {eye:"OD",muscle:"Retto superiore",n:"III",dip:"Il bambino non sa descrivere diplopia; deviazione verticale più evidente guardando in alto.",dev:"Ipotropia OD incomitante in elevazione.",pac:"Mento lievemente elevato.",biel:"Non dirimente.",tag:"III parziale pediatrico",age:"9 anni"},
+ {eye:"OS",muscle:"Retto inferiore",n:"III",dip:"Difficoltà riferita nelle attività che richiedono lo sguardo in basso; diplopia non ben descritta.",dev:"Ipertropia OS incomitante in depressione.",pac:"Mento lievemente abbassato.",biel:"Non dirimente.",tag:"III parziale pediatrico",age:"10 anni"},
+ {eye:"OD",muscle:"Piccolo obliquo",n:"III",dip:"Nessuna diplopia spontaneamente riferita; alterazione verticale evidente in elevazione-adduzione.",dev:"Ipotropia OD più evidente con OD addotto in elevazione.",pac:"Variabile.",biel:"Non dirimente.",tag:"III parziale pediatrico",age:"11 anni"},
+ {eye:"OS",muscle:"Retto mediale",n:"III",dip:"Il bambino riferisce occasionalmente due immagini guardando lateralmente.",dev:"XT OS incomitante, maggiore nel tentativo di adduzione OS.",pac:"Variabile.",biel:"Non significativo.",tag:"III parziale pediatrico",age:"12 anni"}
+];
+const extraCasi=[
+ {eye:"OD",muscle:"Retto laterale",n:"VI",dip:"Diplopia orizzontale intermittente, soprattutto a distanza.",dev:"ET OD piccola in primaria, aumenta nel tentativo di abduzione OD.",pac:"Lieve rotazione del capo verso il lato OD.",biel:"Non significativo.",tag:"VI parziale"},
+ {eye:"OS",muscle:"Retto laterale",n:"VI",dip:"Diplopia orizzontale maggiore a distanza.",dev:"ET OS incomitante; minima in primaria.",pac:"Capo ruotato verso il lato OS.",biel:"Non significativo.",tag:"VI parziale"},
+ {eye:"OD",muscle:"Grande obliquo",n:"IV",dip:"Diplopia verticale-torsionale, soprattutto in lettura e scendendo le scale.",dev:"Ipertropia OD piccola in primaria, aumenta con OD addotto e depresso.",pac:"Tilt del capo verso la spalla OS.",biel:"Aumenta al tilt OD.",tag:"IV lieve"},
+ {eye:"OS",muscle:"Grande obliquo",n:"IV",dip:"Diplopia verticale-torsionale intermittente in basso.",dev:"Ipertropia OS piccola in primaria, aumenta con OS addotto e depresso.",pac:"Tilt del capo verso la spalla OD.",biel:"Aumenta al tilt OS.",tag:"IV lieve"},
+ {eye:"OD",muscle:"Retto superiore",n:"III",dip:"Diplopia verticale soprattutto guardando in alto.",dev:"Ipotropia OD incomitante, modesta in primaria.",pac:"Lieve mento elevato.",biel:"Non dirimente.",tag:"III parziale RS"},
+ {eye:"OS",muscle:"Retto superiore",n:"III",dip:"Diplopia verticale soprattutto guardando in alto.",dev:"Ipotropia OS incomitante, modesta in primaria.",pac:"Lieve mento elevato.",biel:"Non dirimente.",tag:"III parziale RS"},
+ {eye:"OD",muscle:"Retto inferiore",n:"III",dip:"Diplopia verticale soprattutto nello sguardo in basso.",dev:"Ipertropia OD incomitante in depressione.",pac:"Lieve mento abbassato.",biel:"Non dirimente.",tag:"III parziale RI"},
+ {eye:"OS",muscle:"Retto inferiore",n:"III",dip:"Diplopia verticale soprattutto nello sguardo in basso.",dev:"Ipertropia OS incomitante in depressione.",pac:"Lieve mento abbassato.",biel:"Non dirimente.",tag:"III parziale RI"},
+ {eye:"OD",muscle:"Piccolo obliquo",n:"III",dip:"Diplopia verticale nello sguardo in alto con OD addotto.",dev:"Ipotropia OD più evidente in elevazione-adduzione.",pac:"Variabile.",biel:"Non dirimente.",tag:"III parziale PO"},
+ {eye:"OS",muscle:"Piccolo obliquo",n:"III",dip:"Diplopia verticale nello sguardo in alto con OS addotto.",dev:"Ipotropia OS più evidente in elevazione-adduzione.",pac:"Variabile.",biel:"Non dirimente.",tag:"III parziale PO"},
+ {eye:"OD",muscle:"Retto mediale",n:"III",dip:"Diplopia orizzontale nello sguardo controlaterale.",dev:"XT OD piccola in primaria, aumenta nel tentativo di adduzione OD.",pac:"Variabile.",biel:"Non significativo.",tag:"III parziale RM"},
+ {eye:"OS",muscle:"Retto mediale",n:"III",dip:"Diplopia orizzontale nello sguardo controlaterale.",dev:"XT OS piccola in primaria, aumenta nel tentativo di adduzione OS.",pac:"Variabile.",biel:"Non significativo.",tag:"III parziale RM"}
+];
+
 let c;
 function subset(){
  let l=document.getElementById("livello").value;
